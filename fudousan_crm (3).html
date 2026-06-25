@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>収支管理アプリ</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F1EFE8;--card:#fff;--border:#E5E2D9;--text:#1A1916;--text2:#6B6860;
+  --blue:#185FA5;--blue-l:#E6F1FB;--blue-m:#378ADD;
+  --green-l:#EAF3DE;--green:#3B6D11;
+  --amber-l:#FAEEDA;--amber:#854F0B;
+  --purple-l:#EEEDFE;--purple:#3C3489;
+  --red-l:#FCEBEB;--red:#A32D2D;--red-b:#F09595;
+  --teal-l:#E1F5EE;--teal:#0F6E56;
+  --r:10px;--rsm:6px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;background:var(--bg);background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:28px 28px;min-height:100vh;padding:1.5rem}
+.app{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:1.5rem;max-width:1000px;margin:0 auto;position:relative}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:0.5px solid var(--border);flex-wrap:wrap;gap:10px}
+.header-left{display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;border-radius:10px;background:var(--blue);display:flex;align-items:center;justify-content:center;color:var(--blue-l);font-size:20px}
+.app-name{font-size:16px;font-weight:600;color:var(--text)}
+.app-sub{font-size:12px;color:var(--text2)}
+
+/* TAB NAV */
+.top-nav{display:flex;gap:4px;flex-wrap:wrap}
+.top-btn{padding:7px 15px;font-size:13px;border:none;background:none;color:var(--text2);border-radius:var(--rsm);cursor:pointer;display:flex;align-items:center;gap:6px;transition:.15s}
+.top-btn:hover{background:#f5f3ee;color:var(--text)}
+.top-btn.active{font-weight:500}
+.top-btn.t-re.active{background:var(--blue-l);color:var(--blue)}
+.top-btn.t-ko.active{background:var(--teal-l);color:var(--teal)}
+.top-btn.t-fu.active{background:var(--purple-l);color:var(--purple)}
+.top-btn.t-sum.active{background:var(--amber-l);color:var(--amber)}
+
+/* SUB NAV (不動産内) */
+.sub-nav{display:flex;gap:4px;margin-bottom:1.25rem;border-bottom:0.5px solid var(--border);padding-bottom:0}
+.sub-btn{padding:7px 14px;font-size:13px;border:none;background:none;color:var(--text2);border-radius:0;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:5px}
+.sub-btn:hover{color:var(--text)}
+.sub-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:500}
+
+/* PAGES */
+.section{display:none}.section.active{display:block}
+.sub-page{display:none}.sub-page.active{display:block}
+
+/* YEAR BAR */
+.year-bar{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+.year-bar label{font-size:13px;color:var(--text2)}
+.year-bar select{width:auto;padding:6px 10px;font-size:13px}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.25rem}
+.mc{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);padding:.9rem 1.1rem;position:relative;overflow:hidden}
+.mc-acc{position:absolute;top:0;left:0;width:4px;height:100%}
+.mc-lbl{font-size:12px;color:var(--text2);margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.mc-val{font-size:21px;font-weight:600;color:var(--text)}
+.mc-sub{font-size:11px;color:var(--text2);margin-top:3px}
+
+/* GRID2 */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem}
+
+/* CARD */
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-hd{padding:.75rem 1rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px}
+.si{width:22px;height:22px;border-radius:var(--rsm);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+
+/* SECTION ROW */
+.sr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.st{font-size:14px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:7px}
+
+/* BUTTONS */
+.btn{padding:7px 14px;font-size:13px;border:0.5px solid var(--border);border-radius:var(--rsm);background:var(--card);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:.15s}
+.btn:hover{background:#f5f3ee}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn-blue:hover{background:#0C447C}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-danger{background:var(--red-l);color:var(--red);border-color:var(--red-b);font-size:12px;padding:4px 10px}
+.btn-danger:hover{background:#F7C1C1}
+.btn-edit{background:var(--amber-l);color:var(--amber);border-color:#E8C98A;font-size:12px;padding:4px 10px}
+.btn-edit:hover{background:#F5DFA0}
+.btn-green{background:var(--green-l);color:var(--green);border-color:#9FD46A;font-size:12px;padding:4px 10px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+th{text-align:left;padding:8px 10px;color:var(--text2);font-weight:400;font-size:12px;background:#f8f7f3;border-bottom:0.5px solid var(--border)}
+td{padding:8px 10px;border-bottom:0.5px solid var(--border);color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafaf7}
+.tbl{border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1rem}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500}
+.bd-blue{background:var(--blue-l);color:var(--blue)}
+.bd-green{background:var(--green-l);color:var(--green)}
+.bd-amber{background:var(--amber-l);color:var(--amber)}
+.bd-gray{background:#F1EFE8;color:#5F5E5A}
+.bd-teal{background:var(--teal-l);color:var(--teal)}
+.bd-purple{background:var(--purple-l);color:var(--purple)}
+
+/* AVATAR */
+.av{width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.av0{background:var(--blue-l);color:var(--blue)}.av1{background:var(--teal-l);color:var(--teal)}.av2{background:var(--purple-l);color:var(--purple)}.av3{background:#FAECE7;color:#993C1D}.av4{background:var(--amber-l);color:var(--amber)}
+.nm{display:flex;align-items:center;gap:8px}
+
+/* FORM PANEL */
+.fp{background:#f8f7f3;border:0.5px solid var(--border);border-radius:var(--r);padding:1.1rem;margin-bottom:1.25rem}
+.fp-hd{display:flex;align-items:center;gap:8px;margin-bottom:.9rem;padding-bottom:.7rem;border-bottom:0.5px solid var(--border)}
+.fp-title{font-size:14px;font-weight:500}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fr{display:flex;flex-direction:column;gap:4px}
+.fr.full{grid-column:1/-1}
+.fl{font-size:12px;color:var(--text2)}
+input,select,textarea{width:100%;padding:8px 10px;font-size:13px;border:0.5px solid var(--border);border-radius:var(--rsm);background:#fff;color:var(--text);font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue-m)}
+textarea{resize:vertical;min-height:60px}
+.fa{display:flex;justify-content:flex-end;gap:8px;margin-top:.5rem;grid-column:1/-1}
+
+/* BAR */
+.bar-row{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px;border-bottom:0.5px solid var(--border)}
+.bar-row:last-child{border-bottom:none}
+.bl{width:36px;color:var(--text2);text-align:right;font-size:11px;flex-shrink:0}
+.bt{flex:1;height:7px;background:#f0ede6;border-radius:4px;overflow:hidden}
+.bf{height:100%;background:var(--blue-m);border-radius:4px}
+.bv{width:40px;color:var(--text);font-size:12px;font-weight:500}
+
+/* MONTHLY GRID */
+.mg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.25rem}
+.mo{background:#fff;border:0.5px solid var(--border);border-radius:var(--rsm);padding:.65rem .85rem}
+.mo-l{font-size:11px;color:var(--text2);margin-bottom:3px}
+.mo-v{font-size:15px;font-weight:600;color:var(--text)}
+.mo-s{font-size:11px;color:var(--text2);margin-top:2px}
+.mo.has{border-color:#B5D4F4}
+.mo.cur{background:var(--blue-l);border-color:var(--blue-m)}
+.mo.cur .mo-l{color:var(--blue)}.mo.cur .mo-v{color:#0C447C}
+
+/* MODAL */
+.modal-bg{display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:100;align-items:flex-start;justify-content:center;padding-top:80px;border-radius:var(--r)}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:var(--r);border:0.5px solid var(--border);padding:1.5rem;width:100%;max-width:460px;max-height:90vh;overflow-y:auto}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.modal-title{font-size:15px;font-weight:500}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);padding:2px 6px;border-radius:4px}
+.modal-close:hover{background:#f5f3ee}
+
+/* DETAIL ROW (memo) */
+.det-row{background:#f8f7f3}
+.det-td{padding:10px 14px;font-size:13px;color:var(--text2);white-space:normal;overflow:visible}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1A1916;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:999}
+.toast.show{opacity:1}
+
+/* SUMMARY */
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:1.5rem}
+.sum-card{border-radius:var(--r);padding:1.1rem 1.3rem;border:0.5px solid var(--border)}
+.sum-cat{font-size:12px;font-weight:500;margin-bottom:.5rem;display:flex;align-items:center;gap:6px}
+.sum-val{font-size:24px;font-weight:700}
+.sum-sub{font-size:12px;margin-top:4px;opacity:.7}
+.total-card{background:var(--text);color:#fff;border-radius:var(--r);padding:1.3rem 1.5rem;margin-bottom:1.5rem;border:none}
+.total-label{font-size:13px;opacity:.7;margin-bottom:.4rem}
+.total-val{font-size:32px;font-weight:700}
+.total-sub{font-size:12px;opacity:.6;margin-top:.3rem}
+
+/* PDF LINK */
+.pdf-link{color:var(--blue);font-size:12px;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.pdf-link:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo"><i class="ti ti-coin"></i></div>
+      <div><div class="app-name">収支管理アプリ</div><div class="app-sub">不動産・送迎・副業カレッジ</div></div>
+    </div>
+    <div class="top-nav">
+      <button class="top-btn t-re active" onclick="showSection('re')"><i class="ti ti-building"></i>不動産</button>
+      <button class="top-btn t-ko" onclick="showSection('ko')"><i class="ti ti-car"></i>送迎</button>
+      <button class="top-btn t-fu" onclick="showSection('fu')"><i class="ti ti-school"></i>副業カレッジ</button>
+      <button class="top-btn t-sum" onclick="showSection('sum')"><i class="ti ti-chart-pie"></i>合計収支</button>
+    </div>
+  </div>
+
+  <!-- ===== 不動産 ===== -->
+  <div class="section active" id="s-re">
+    <div class="sub-nav">
+      <button class="sub-btn active" onclick="showSubPage('re','dash')"><i class="ti ti-layout-dashboard"></i>概要</button>
+      <button class="sub-btn" onclick="showSubPage('re','cust')"><i class="ti ti-users"></i>顧客</button>
+      <button class="sub-btn" onclick="showSubPage('re','sale')"><i class="ti ti-receipt"></i>売上</button>
+    </div>
+
+    <!-- 不動産 概要 -->
+    <div class="sub-page active" id="re-dash">
+      <div class="year-bar">
+        <i class="ti ti-calendar" style="font-size:16px;color:var(--text2)"></i>
+        <label>表示年度</label>
+        <select id="re-dash-year" onchange="renderReDash()"></select>
+      </div>
+      <div class="metrics" id="re-metrics"></div>
+      <div class="sr"><span class="st"><span class="si" style="background:var(--blue-l);color:var(--blue)"><i class="ti ti-calendar-stats"></i></span>月別サマリー（仲介手数料件数）</span></div>
+      <div class="mg" id="re-monthly"></div>
+      <div class="grid2">
+        <div class="card">
+          <div class="card-hd"><span class="card-title"><span class="si" style="background:var(--blue-l);color:var(--blue)"><i class="ti ti-chart-bar"></i></span>月別成約件数</span></div>
+          <div style="padding:.75rem 1rem" id="re-bar"></div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title"><span class="si" style="background:var(--green-l);color:var(--green)"><i class="ti ti-clock"></i></span>直近の成約</span><button class="btn btn-sm" onclick="showSubPage('re','sale')">すべて見る</button></div>
+          <table><thead><tr><th style="width:38%">顧客</th><th style="width:35%">物件</th><th style="width:27%">仲介料</th></tr></thead><tbody id="re-recent"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 不動産 顧客 -->
+    <div class="sub-page" id="re-cust">
+      <div class="fp">
+        <div class="fp-hd"><span class="si" style="background:var(--purple-l);color:var(--purple)"><i class="ti ti-user-plus"></i></span><span class="fp-title">顧客を追加</span></div>
+        <div class="fg">
+          <div class="fr"><span class="fl">氏名</span><input id="rc-name" placeholder="山田 太郎"></div>
+          <div class="fr"><span class="fl">電話番号</span><input id="rc-phone" placeholder="090-0000-0000"></div>
+          <div class="fr"><span class="fl">メールアドレス</span><input id="rc-email" type="email" placeholder="example@email.com"></div>
+          <div class="fr"><span class="fl">ステータス</span><select id="rc-status"><option value="active">商談中</option><option value="inactive">見込み</option><option value="contract">成約済</option></select></div>
+          <div class="fr full"><span class="fl">メモ</span><textarea id="rc-memo" placeholder="備考・要望など"></textarea></div>
+          <div class="fr full"><span class="fl">PDF格納場所（ファイルパス / URL）</span><input id="rc-pdf" placeholder="例: C:\顧客資料\山田太郎.pdf  または  https://..."></div>
+          <div class="fa"><button class="btn" onclick="clearF('rc-name,rc-phone,rc-email,rc-memo,rc-pdf');document.getElementById('rc-status').value='active'"><i class="ti ti-x"></i>クリア</button><button class="btn btn-blue" onclick="addReCust()"><i class="ti ti-plus"></i>追加する</button></div>
+        </div>
+      </div>
+      <div class="sr"><span class="st"><span class="si" style="background:var(--purple-l);color:var(--purple)"><i class="ti ti-users"></i></span>顧客一覧</span></div>
+      <div class="tbl"><table>
+        <thead><tr><th style="width:18%">氏名</th><th style="width:17%">電話</th><th style="width:20%">メール</th><th style="width:11%">状態</th><th style="width:9%">メモ</th><th style="width:10%">PDF</th><th style="width:15%">操作</th></tr></thead>
+        <tbody id="re-cust-tbl"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 不動産 売上 -->
+    <div class="sub-page" id="re-sale">
+      <div class="year-bar">
+        <i class="ti ti-calendar" style="font-size:16px;color:var(--text2)"></i><label>表示年度</label>
+        <select id="re-sale-year" onchange="renderReSale()"></select>
+      </div>
+      <div class="fp">
+        <div class="fp-hd"><span class="si" style="background:var(--amber-l);color:var(--amber)"><i class="ti ti-receipt"></i></span><span class="fp-title">売上を追加</span></div>
+        <div class="fg">
+          <div class="fr"><span class="fl">顧客名</span><input id="rs-cust" placeholder="田中 美咲"></div>
+          <div class="fr"><span class="fl">種別</span><select id="rs-type"><option value="仲介">仲介</option><option value="宅建士">宅建士</option><option value="引越し">引越し</option></select></div>
+          <div class="fr"><span class="fl">物件名</span><input id="rs-prop" placeholder="渋谷区桜丘 1LDK"></div>
+          <div class="fr"><span class="fl">金額（円）</span><input id="rs-fee" type="number" placeholder="100000"></div>
+          <div class="fr"><span class="fl">日付</span><input id="rs-date" type="date"></div>
+          <div class="fa"><button class="btn" onclick="clearF('rs-cust,rs-prop,rs-fee,rs-date');document.getElementById('rs-type').value='仲介'"><i class="ti ti-x"></i>クリア</button><button class="btn btn-blue" onclick="addReSale()"><i class="ti ti-plus"></i>追加する</button></div>
+        </div>
+      </div>
+      <div class="sr"><span class="st"><span class="si" style="background:var(--amber-l);color:var(--amber)"><i class="ti ti-list"></i></span>売上一覧</span></div>
+      <div class="tbl"><table>
+        <thead><tr><th style="width:17%">顧客名</th><th style="width:22%">物件</th><th style="width:14%">金額</th><th style="width:11%">種別</th><th style="width:14%">日付</th><th style="width:22%">操作</th></tr></thead>
+        <tbody id="re-sale-tbl"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ===== 送迎 ===== -->
+  <div class="section" id="s-ko">
+    <div class="sub-nav">
+      <button class="sub-btn active" onclick="showSubPage('ko','dash')"><i class="ti ti-layout-dashboard"></i>概要</button>
+      <button class="sub-btn" onclick="showSubPage('ko','cust')"><i class="ti ti-users"></i>顧客</button>
+      <button class="sub-btn" onclick="showSubPage('ko','sale')"><i class="ti ti-receipt"></i>売上</button>
+    </div>
+
+    <!-- 送迎 概要 -->
+    <div class="sub-page active" id="ko-dash">
+      <div class="year-bar"><i class="ti ti-calendar" style="font-size:16px;color:var(--text2)"></i><label>表示年度</label><select id="ko-dash-year" onchange="renderKoDash()"></select></div>
+      <div class="metrics" id="ko-metrics"></div>
+      <div class="sr"><span class="st"><span class="si" style="background:var(--teal-l);color:var(--teal)"><i class="ti ti-calendar-stats"></i></span>月別売上</span></div>
+      <div class="mg" id="ko-monthly"></div>
+      <div class="card">
+        <div class="card-hd"><span class="card-title"><span class="si" style="background:var(--teal-l);color:var(--teal)"><i class="ti ti-clock"></i></span>直近の売上</span><button class="btn btn-sm" onclick="showSubPage('ko','sale')">すべて見る</button></div>
+        <table><thead><tr><th style="width:30%">顧客名</th><th style="width:30%">内容</th><th style="width:20%">金額</th><th style="width:20%">日付</th></tr></thead><tbody id="ko-recent"></tbody></table>
+      </div>
+    </div>
+
+    <!-- 送迎 顧客 -->
+    <div class="sub-page" id="ko-cust">
+      <div class="fp">
+        <div class="fp-hd"><span class="si" style="background:var(--teal-l);color:var(--teal)"><i class="ti ti-user-plus"></i></span><span class="fp-title">顧客を追加</span></div>
+        <div class="fg">
+          <div class="fr"><span class="fl">氏名</span><input id="kc-name" placeholder="山田 太郎"></div>
+          <div class="fr"><span class="fl">電話番号</span><input id="kc-phone" placeholder="090-0000-0000"></div>
+          <div class="fr full"><span class="fl">住所・備考</span><input id="kc-memo" placeholder="送迎先住所など"></div>
+          <div class="fa"><button class="btn" onclick="clearF('kc-name,kc-phone,kc-memo')"><i class="ti ti-x"></i>クリア</button><button class="btn btn-blue" onclick="addKoCust()"><i class="ti ti-plus"></i>追加する</button></div>
+        </div>
+      </div>
+      <div class="sr"><span class="st"><span class="si" style="background:var(--teal-l);color:var(--teal)"><i class="ti ti-users"></i></span>顧客一覧</span></div>
+      <div class="tbl"><table>
+        <thead><tr><th style="width:28%">氏名</th><th style="width:28%">電話</th><th style="width:28%">備考</th><th style="width:16%">操作</th></tr></thead>
+        <tbody id="ko-cust-tbl"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 送迎 売上 -->
+    <div class="sub-page" id="ko-sale">
+      <div class="year-bar"><i class="ti ti-calendar" style="font-size:16px;color:var(--text2)"></i><label>表示年度</label><select id="ko-sale-year" onchange="renderKoSale()"></select></div>
+      <div class="fp">
+        <div class="fp-hd"><span class="si" style="background:var(--teal-l);color:var(--teal)"><i class="ti ti-receipt"></i></span><span class="fp-title">売上を追加</span></div>
+        <div class="fg">
+          <div class="fr"><span class="fl">顧客名</span><input id="ks-cust" placeholder="田中 美咲"></div>
+          <div class="fr"><span class="fl">内容</span><input id="ks-desc" placeholder="空港送迎など"></div>
+          <div class="fr"><span class="fl">金額（円）</span><input id="ks-fee" type="number" placeholder="5000"></div>
+          <div class="fr"><span class="fl">日付</span><input id="ks-date" type="date"></div>
+          <div class="fa"><button class="btn" onclick="clearF('ks-cust,ks-desc,ks-fee,ks-date')"><i class="ti ti-x"></i>クリア</button><button class="btn btn-blue" onclick="addKoSale()"><i class="ti ti-plus"></i>追加する</button></div>
+        </div>
+      </div>
+      <div class="sr"><span class="st"><span class="si" style="background:var(--teal-l);color:var(--teal)"><i class="ti ti-list"></i></span>売上一覧</span></div>
+      <div class="tbl"><table>
+        <thead><tr><th style="width:22%">顧客名</th><th style="width:26%">内容</th><th style="width:18%">金額</th><th style="width:16%">日付</th><th style="width:18%">操作</th></tr></thead>
+        <tbody id="ko-sale-tbl"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ===== 副業カレッジ ===== -->
+  <div class="section" id="s-fu">
+    <div class="year-bar"><i class="ti ti-calendar" style="font-size:16px;color:var(--text2)"></i><label>表示年度</label><select id="fu-year" onchange="renderFu()"></select></div>
+    <div class="fp">
+      <div class="fp-hd"><span class="si" style="background:var(--purple-l);color:var(--purple)"><i class="ti ti-plus"></i></span><span class="fp-title">月次収支を登録</span></div>
+      <div class="fg">
+        <div class="fr"><span class="fl">年月</span><input id="fu-ym" type="month"></div>
+        <div class="fr"><span class="fl">収入（円）</span><input id="fu-inc" type="number" placeholder="0"></div>
+        <div class="fr"><span class="fl">支出（円）</span><input id="fu-exp" type="number" placeholder="0"></div>
+        <div class="fr full"><span class="fl">メモ</span><input id="fu-memo" placeholder="講座名・内容など"></div>
+        <div class="fa"><button class="btn" onclick="clearF('fu-ym,fu-inc,fu-exp,fu-memo')"><i class="ti ti-x"></i>クリア</button><button class="btn btn-blue" onclick="addFu()"><i class="ti ti-plus"></i>登録する</button></div>
+      </div>
+    </div>
+    <div class="sr"><span class="st"><span class="si" style="background:var(--purple-l);color:var(--purple)"><i class="ti ti-calendar-stats"></i></span>月次収支一覧</span></div>
+    <div class="tbl"><table>
+      <thead><tr><th style="width:15%">年月</th><th style="width:20%">収入</th><th style="width:20%">支出</th><th style="width:18%">収支</th><th style="width:11%">メモ</th><th style="width:16%">操作</th></tr></thead>
+      <tbody id="fu-tbl"></tbody>
+    </table></div>
+    <div class="metrics" id="fu-metrics" style="margin-top:1rem"></div>
+  </div>
+
+  <!-- ===== 合計収支 ===== -->
+  <div class="section" id="s-sum">
+    <div class="year-bar"><i class="ti ti-calendar" style="font-size:16px;color:var(--text2)"></i><label>表示年度</label><select id="sum-year" onchange="renderSum()"></select></div>
+    <div class="total-card">
+      <div class="total-label">年間合計収入（3部門合算）</div>
+      <div class="total-val" id="sum-total">¥0</div>
+      <div class="total-sub" id="sum-sub">—</div>
+    </div>
+    <div class="sum-grid" id="sum-cards"></div>
+    <div class="sr" style="margin-top:1rem"><span class="st"><span class="si" style="background:var(--amber-l);color:var(--amber)"><i class="ti ti-chart-bar"></i></span>月別合計収入</span></div>
+    <div class="card">
+      <div style="padding:.75rem 1rem" id="sum-bar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-bg" id="edit-modal">
+  <div class="modal">
+    <div class="modal-hd"><span class="modal-title" id="edit-modal-title">編集</span><button class="modal-close" onclick="closeModal()"><i class="ti ti-x"></i></button></div>
+    <div id="edit-modal-body"></div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:1rem">
+      <button class="btn" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-blue" onclick="saveEdit()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== STORAGE =====
+const SK={
+  reCust:'crm2_re_cust', reSale:'crm2_re_sale',
+  koCust:'crm2_ko_cust', koSale:'crm2_ko_sale',
+  fu:'crm2_fu'
+};
+function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+
+// ===== 旧バージョンからのデータ移行 =====
+(function migrate(){
+  // 旧キー crm_customers → crm2_re_cust
+  if(!localStorage.getItem(SK.reCust) && localStorage.getItem('crm_customers')){
+    try{
+      const old=JSON.parse(localStorage.getItem('crm_customers'));
+      const migrated=old.map(c=>({...c, pdf: c.pdf||'', memo: c.memo||''}));
+      localStorage.setItem(SK.reCust, JSON.stringify(migrated));
+    }catch(e){}
+  }
+  // 旧キー crm_sales → crm2_re_sale (typeがない場合は'仲介'として移行)
+  if(!localStorage.getItem(SK.reSale) && localStorage.getItem('crm_sales')){
+    try{
+      const old=JSON.parse(localStorage.getItem('crm_sales'));
+      const migrated=old.map(s=>({...s, type: s.type||'仲介'}));
+      localStorage.setItem(SK.reSale, JSON.stringify(migrated));
+    }catch(e){}
+  }
+})();
+
+// ===== DATA =====
+let reCust=load(SK.reCust,[]);
+let reSale=load(SK.reSale,[]);
+let koCust=load(SK.koCust,[]);
+let koSale=load(SK.koSale,[]);
+let fuData=load(SK.fu,[]);
+
+let ids={reCust:Math.max(...reCust.map(c=>c.id),0)+1, reSale:Math.max(...reSale.map(s=>s.id),0)+1,
+         koCust:Math.max(...koCust.map(c=>c.id),0)+1, koSale:Math.max(...koSale.map(s=>s.id),0)+1,
+         fu:Math.max(...fuData.map(f=>f.id),0)+1};
+
+// ===== UTILS =====
+const AV=['av0','av1','av2','av3','av4'];
+const SL={active:'商談中',contract:'成約済',inactive:'見込み'};
+const SB={active:'bd-blue',contract:'bd-green',inactive:'bd-gray'};
+const TB={仲介:'bd-blue',宅建士:'bd-teal',引越し:'bd-amber'};
+const fmtY=n=>'¥'+Number(n).toLocaleString();
+const fmtD=s=>s?s.replace(/-/g,'/'):'';
+const ini=n=>(n||'').replace(/\s/g,'').slice(0,2);
+const avc=i=>AV[i%AV.length];
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function clearF(ids){ids.split(',').forEach(id=>{const el=document.getElementById(id);if(el)el.value='';})}
+function getYearsFrom(arr,dateKey){
+  const ys=new Set((arr||[]).map(x=>(x[dateKey]||x.ym||'').slice(0,4)).filter(Boolean));
+  ys.add(String(new Date().getFullYear()));
+  return Array.from(ys).sort((a,b)=>b-a);
+}
+function buildSel(id,years){
+  const sel=document.getElementById(id);if(!sel)return;
+  const cur=sel.value||String(new Date().getFullYear());
+  sel.innerHTML=years.map(y=>`<option value="${y}"${y===cur?' selected':''}>${y}年</option>`).join('');
+}
+
+// ===== EDIT MODAL =====
+let editCtx={};
+function openEditModal(title, fields, ctx){
+  editCtx=ctx;
+  document.getElementById('edit-modal-title').textContent=title;
+  document.getElementById('edit-modal-body').innerHTML=fields;
+  document.getElementById('edit-modal').classList.add('show');
+}
+function closeModal(){document.getElementById('edit-modal').classList.remove('show');}
+function saveEdit(){if(editCtx.save)editCtx.save();closeModal();}
+
+// ===== NAV =====
+function showSection(s){
+  document.querySelectorAll('.section').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.top-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('s-'+s).classList.add('active');
+  document.querySelector('.top-btn.t-'+s).classList.add('active');
+  if(s==='re')renderReDash();
+  if(s==='ko')renderKoDash();
+  if(s==='fu')renderFu();
+  if(s==='sum')renderSum();
+}
+function showSubPage(sec,pg){
+  document.querySelectorAll(`#s-${sec} .sub-page`).forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll(`#s-${sec} .sub-btn`).forEach(el=>el.classList.remove('active'));
+  document.getElementById(`${sec}-${pg}`).classList.add('active');
+  const btns=document.querySelectorAll(`#s-${sec} .sub-btn`);
+  const idx={dash:0,cust:1,sale:2}[pg];
+  if(btns[idx])btns[idx].classList.add('active');
+  if(sec==='re'&&pg==='dash')renderReDash();
+  if(sec==='re'&&pg==='cust')renderReCust();
+  if(sec==='re'&&pg==='sale'){buildReSaleYears();renderReSale();}
+  if(sec==='ko'&&pg==='dash')renderKoDash();
+  if(sec==='ko'&&pg==='cust')renderKoCust();
+  if(sec==='ko'&&pg==='sale'){buildKoSaleYears();renderKoSale();}
+}
+
+// ===== 不動産 概要 =====
+function buildReDashYears(){buildSel('re-dash-year',getYearsFrom(reSale,'date'));}
+function renderReDash(){
+  buildReDashYears();
+  const y=document.getElementById('re-dash-year').value;
+  const ys=reSale.filter(s=>s.date.startsWith(y));
+  const total=ys.reduce((a,s)=>a+Number(s.fee),0);
+  const chukai=ys.filter(s=>s.type!=='宅建士'&&s.type!=='引越し');
+  const now=new Date();
+  const tm=String(now.getMonth()+1).padStart(2,'0');
+  const mTotal=ys.filter(s=>s.date.startsWith(`${y}-${tm}`)).reduce((a,s)=>a+Number(s.fee),0);
+  document.getElementById('re-metrics').innerHTML=`
+    <div class="mc"><div class="mc-acc" style="background:var(--blue-m)"></div><div class="mc-lbl"><i class="ti ti-coin" style="font-size:13px"></i>${y}年 累計</div><div class="mc-val">${fmtY(total)}</div><div class="mc-sub">${ys.length}件</div></div>
+    <div class="mc"><div class="mc-acc" style="background:#1D9E75"></div><div class="mc-lbl"><i class="ti ti-trending-up" style="font-size:13px"></i>${Number(tm)}月</div><div class="mc-val">${fmtY(mTotal)}</div></div>
+    <div class="mc"><div class="mc-acc" style="background:var(--blue)"></div><div class="mc-lbl"><i class="ti ti-home" style="font-size:13px"></i>仲介手数料件数</div><div class="mc-val">${chukai.length}件</div><div class="mc-sub">${y}年累計（宅建士・引越し除く）</div></div>
+    <div class="mc"><div class="mc-acc" style="background:var(--purple)"></div><div class="mc-lbl"><i class="ti ti-users" style="font-size:13px"></i>商談中</div><div class="mc-val">${reCust.filter(c=>c.status==='active').length}人</div></div>`;
+  const months=Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'));
+  document.getElementById('re-monthly').innerHTML=months.map(m=>{
+    const ms=chukai.filter(s=>s.date.startsWith(`${y}-${m}`));
+    const mf=ms.reduce((a,s)=>a+Number(s.fee),0);
+    const isCur=y===String(now.getFullYear())&&m===tm;
+    return `<div class="mo${isCur?' cur':ms.length>0?' has':''}"><div class="mo-l">${Number(m)}月</div><div class="mo-v">${ms.length}件</div><div class="mo-s">${mf>0?fmtY(mf):'—'}</div></div>`;
+  }).join('');
+  const mData=months.map(m=>chukai.filter(s=>s.date.startsWith(`${y}-${m}`)).length);
+  const mx=Math.max(...mData,1);
+  document.getElementById('re-bar').innerHTML=months.map((m,i)=>`<div class="bar-row"><span class="bl">${Number(m)}月</span><div class="bt"><div class="bf" style="width:${Math.round(mData[i]/mx*100)}%"></div></div><span class="bv">${mData[i]}件</span></div>`).join('');
+  const rec=reSale.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);
+  document.getElementById('re-recent').innerHTML=rec.map(s=>`<tr><td>${s.customer}</td><td style="color:var(--text2);font-size:12px">${s.property}</td><td style="font-weight:600">${fmtY(s.fee)}</td></tr>`).join('');
+}
+
+// ===== 不動産 顧客 =====
+function renderReCust(){
+  document.getElementById('re-cust-tbl').innerHTML=reCust.length?reCust.map((c,i)=>`
+    <tr>
+      <td><div class="nm"><div class="av ${avc(i)}">${ini(c.name)}</div>${c.name}</div></td>
+      <td style="color:var(--text2)">${c.phone}</td>
+      <td style="color:var(--text2);font-size:12px">${c.email}</td>
+      <td><span class="badge ${SB[c.status]}">${SL[c.status]}</span></td>
+      <td>${c.memo?`<button class="btn btn-sm" onclick="toggleMemo('rcmemo-${c.id}',this)" style="font-size:11px;padding:3px 8px"><i class="ti ti-notes"></i></button>`:'<span style="color:var(--text2);font-size:12px">—</span>'}</td>
+      <td>${c.pdf?`<a href="${c.pdf}" target="_blank" class="pdf-link"><i class="ti ti-file-type-pdf"></i>開く</a>`:'<span style="color:var(--text2);font-size:12px">—</span>'}</td>
+      <td><div style="display:flex;gap:4px"><button class="btn btn-edit" onclick="editReCust(${c.id})"><i class="ti ti-pencil"></i>編集</button><button class="btn btn-danger" onclick="delReCust(${c.id})"><i class="ti ti-trash"></i>削除</button></div></td>
+    </tr>
+    <tr id="rcmemo-${c.id}" style="display:none;background:#f8f7f3"><td colspan="7" style="padding:10px 14px;font-size:13px;color:var(--text2);white-space:normal">${c.memo}</td></tr>
+  `).join(''):'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text2)">顧客がいません</td></tr>';
+}
+function toggleMemo(id,btn){const r=document.getElementById(id);const o=r.style.display==='table-row';r.style.display=o?'none':'table-row';btn.style.background=o?'':'var(--blue-l)';btn.style.color=o?'':'var(--blue)';}
+function addReCust(){
+  const name=document.getElementById('rc-name').value.trim();
+  if(!name){alert('氏名を入力してください');return;}
+  reCust.push({id:ids.reCust++,name,phone:document.getElementById('rc-phone').value.trim(),email:document.getElementById('rc-email').value.trim(),status:document.getElementById('rc-status').value,memo:document.getElementById('rc-memo').value.trim(),pdf:document.getElementById('rc-pdf').value.trim()});
+  save(SK.reCust,reCust);clearF('rc-name,rc-phone,rc-email,rc-memo,rc-pdf');document.getElementById('rc-status').value='active';
+  renderReCust();toast('顧客を追加しました ✓');
+}
+function delReCust(id){if(confirm('削除しますか？')){reCust=reCust.filter(c=>c.id!==id);save(SK.reCust,reCust);renderReCust();toast('削除しました');}}
+function editReCust(id){
+  const c=reCust.find(x=>x.id===id);if(!c)return;
+  const fields=`<div class="fg">
+    <div class="fr"><span class="fl">氏名</span><input id="e-name" value="${c.name}"></div>
+    <div class="fr"><span class="fl">電話</span><input id="e-phone" value="${c.phone}"></div>
+    <div class="fr"><span class="fl">メール</span><input id="e-email" value="${c.email}"></div>
+    <div class="fr"><span class="fl">ステータス</span><select id="e-status"><option value="active"${c.status==='active'?' selected':''}>商談中</option><option value="inactive"${c.status==='inactive'?' selected':''}>見込み</option><option value="contract"${c.status==='contract'?' selected':''}>成約済</option></select></div>
+    <div class="fr full"><span class="fl">メモ</span><textarea id="e-memo">${c.memo}</textarea></div>
+    <div class="fr full"><span class="fl">PDF格納場所</span><input id="e-pdf" value="${c.pdf}"></div>
+  </div>`;
+  openEditModal('顧客を編集', fields, {save:()=>{
+    c.name=document.getElementById('e-name').value.trim();
+    c.phone=document.getElementById('e-phone').value.trim();
+    c.email=document.getElementById('e-email').value.trim();
+    c.status=document.getElementById('e-status').value;
+    c.memo=document.getElementById('e-memo').value.trim();
+    c.pdf=document.getElementById('e-pdf').value.trim();
+    save(SK.reCust,reCust);renderReCust();toast('顧客を更新しました ✓');
+  }});
+}
+
+// ===== 不動産 売上 =====
+function buildReSaleYears(){buildSel('re-sale-year',getYearsFrom(reSale,'date'));}
+function renderReSale(){
+  buildReSaleYears();
+  const y=document.getElementById('re-sale-year').value;
+  const filtered=reSale.filter(s=>s.date.startsWith(y)).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('re-sale-tbl').innerHTML=filtered.length?filtered.map((s,i)=>`
+    <tr>
+      <td><div class="nm"><div class="av ${avc(i)}">${ini(s.customer)}</div>${s.customer}</div></td>
+      <td style="color:var(--text2);font-size:12px">${s.property}</td>
+      <td style="font-weight:600">${fmtY(s.fee)}</td>
+      <td><span class="badge ${TB[s.type]||'bd-gray'}">${s.type}</span></td>
+      <td style="color:var(--text2)">${fmtD(s.date)}</td>
+      <td><div style="display:flex;gap:4px"><button class="btn btn-edit" onclick="editReSale(${s.id})"><i class="ti ti-pencil"></i>編集</button><button class="btn btn-danger" onclick="delReSale(${s.id})"><i class="ti ti-trash"></i>削除</button></div></td>
+    </tr>`).join(''):`<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text2)">${y}年の記録がありません</td></tr>`;
+}
+function addReSale(){
+  const customer=document.getElementById('rs-cust').value.trim();
+  if(!customer){alert('顧客名を入力してください');return;}
+  reSale.push({id:ids.reSale++,customer,property:document.getElementById('rs-prop').value.trim(),fee:parseInt(document.getElementById('rs-fee').value)||0,date:document.getElementById('rs-date').value||new Date().toISOString().slice(0,10),type:document.getElementById('rs-type').value});
+  save(SK.reSale,reSale);clearF('rs-cust,rs-prop,rs-fee,rs-date');document.getElementById('rs-type').value='仲介';
+  renderReSale();renderReDash();toast('売上を追加しました ✓');
+}
+function delReSale(id){if(confirm('削除しますか？')){reSale=reSale.filter(s=>s.id!==id);save(SK.reSale,reSale);renderReSale();renderReDash();toast('削除しました');}}
+function editReSale(id){
+  const s=reSale.find(x=>x.id===id);if(!s)return;
+  const fields=`<div class="fg">
+    <div class="fr"><span class="fl">顧客名</span><input id="e-cust" value="${s.customer}"></div>
+    <div class="fr"><span class="fl">種別</span><select id="e-type"><option${s.type==='仲介'?' selected':''}>仲介</option><option${s.type==='宅建士'?' selected':''}>宅建士</option><option${s.type==='引越し'?' selected':''}>引越し</option></select></div>
+    <div class="fr"><span class="fl">物件名</span><input id="e-prop" value="${s.property}"></div>
+    <div class="fr"><span class="fl">金額（円）</span><input id="e-fee" type="number" value="${s.fee}"></div>
+    <div class="fr full"><span class="fl">日付</span><input id="e-date" type="date" value="${s.date}"></div>
+  </div>`;
+  openEditModal('売上を編集', fields, {save:()=>{
+    s.customer=document.getElementById('e-cust').value.trim();
+    s.type=document.getElementById('e-type').value;
+    s.property=document.getElementById('e-prop').value.trim();
+    s.fee=parseInt(document.getElementById('e-fee').value)||0;
+    s.date=document.getElementById('e-date').value;
+    save(SK.reSale,reSale);renderReSale();renderReDash();toast('売上を更新しました ✓');
+  }});
+}
+
+// ===== 送迎 概要 =====
+function buildKoDashYears(){buildSel('ko-dash-year',getYearsFrom(koSale,'date'));}
+function renderKoDash(){
+  buildKoDashYears();
+  const y=document.getElementById('ko-dash-year').value;
+  const ys=koSale.filter(s=>s.date.startsWith(y));
+  const total=ys.reduce((a,s)=>a+Number(s.fee),0);
+  const now=new Date();const tm=String(now.getMonth()+1).padStart(2,'0');
+  const mTotal=ys.filter(s=>s.date.startsWith(`${y}-${tm}`)).reduce((a,s)=>a+Number(s.fee),0);
+  document.getElementById('ko-metrics').innerHTML=`
+    <div class="mc"><div class="mc-acc" style="background:var(--teal)"></div><div class="mc-lbl"><i class="ti ti-coin" style="font-size:13px"></i>${y}年 累計</div><div class="mc-val">${fmtY(total)}</div><div class="mc-sub">${ys.length}件</div></div>
+    <div class="mc"><div class="mc-acc" style="background:#1D9E75"></div><div class="mc-lbl"><i class="ti ti-trending-up" style="font-size:13px"></i>${Number(tm)}月</div><div class="mc-val">${fmtY(mTotal)}</div></div>
+    <div class="mc"><div class="mc-acc" style="background:var(--teal)"></div><div class="mc-lbl"><i class="ti ti-users" style="font-size:13px"></i>顧客数</div><div class="mc-val">${koCust.length}人</div></div>`;
+  const months=Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'));
+  document.getElementById('ko-monthly').innerHTML=months.map(m=>{
+    const ms=ys.filter(s=>s.date.startsWith(`${y}-${m}`));
+    const mf=ms.reduce((a,s)=>a+Number(s.fee),0);
+    const isCur=y===String(now.getFullYear())&&m===tm;
+    return `<div class="mo${isCur?' cur':ms.length>0?' has':''}"><div class="mo-l">${Number(m)}月</div><div class="mo-v">${ms.length}件</div><div class="mo-s">${mf>0?fmtY(mf):'—'}</div></div>`;
+  }).join('');
+  const rec=koSale.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4);
+  document.getElementById('ko-recent').innerHTML=rec.map(s=>`<tr><td>${s.customer}</td><td style="color:var(--text2)">${s.desc}</td><td style="font-weight:600">${fmtY(s.fee)}</td><td style="color:var(--text2)">${fmtD(s.date)}</td></tr>`).join('');
+}
+
+// ===== 送迎 顧客 =====
+function renderKoCust(){
+  document.getElementById('ko-cust-tbl').innerHTML=koCust.length?koCust.map((c,i)=>`
+    <tr>
+      <td><div class="nm"><div class="av ${avc(i)}">${ini(c.name)}</div>${c.name}</div></td>
+      <td style="color:var(--text2)">${c.phone}</td>
+      <td style="color:var(--text2)">${c.memo}</td>
+      <td><div style="display:flex;gap:4px"><button class="btn btn-edit" onclick="editKoCust(${c.id})"><i class="ti ti-pencil"></i>編集</button><button class="btn btn-danger" onclick="delKoCust(${c.id})"><i class="ti ti-trash"></i>削除</button></div></td>
+    </tr>`).join(''):'<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--text2)">顧客がいません</td></tr>';
+}
+function addKoCust(){
+  const name=document.getElementById('kc-name').value.trim();
+  if(!name){alert('氏名を入力してください');return;}
+  koCust.push({id:ids.koCust++,name,phone:document.getElementById('kc-phone').value.trim(),memo:document.getElementById('kc-memo').value.trim()});
+  save(SK.koCust,koCust);clearF('kc-name,kc-phone,kc-memo');renderKoCust();toast('顧客を追加しました ✓');
+}
+function delKoCust(id){if(confirm('削除しますか？')){koCust=koCust.filter(c=>c.id!==id);save(SK.koCust,koCust);renderKoCust();toast('削除しました');}}
+function editKoCust(id){
+  const c=koCust.find(x=>x.id===id);if(!c)return;
+  const fields=`<div class="fg">
+    <div class="fr"><span class="fl">氏名</span><input id="e-name" value="${c.name}"></div>
+    <div class="fr"><span class="fl">電話</span><input id="e-phone" value="${c.phone}"></div>
+    <div class="fr full"><span class="fl">備考</span><input id="e-memo" value="${c.memo}"></div>
+  </div>`;
+  openEditModal('顧客を編集',fields,{save:()=>{
+    c.name=document.getElementById('e-name').value.trim();
+    c.phone=document.getElementById('e-phone').value.trim();
+    c.memo=document.getElementById('e-memo').value.trim();
+    save(SK.koCust,koCust);renderKoCust();toast('更新しました ✓');
+  }});
+}
+
+// ===== 送迎 売上 =====
+function buildKoSaleYears(){buildSel('ko-sale-year',getYearsFrom(koSale,'date'));}
+function renderKoSale(){
+  buildKoSaleYears();
+  const y=document.getElementById('ko-sale-year').value;
+  const filtered=koSale.filter(s=>s.date.startsWith(y)).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('ko-sale-tbl').innerHTML=filtered.length?filtered.map((s,i)=>`
+    <tr>
+      <td><div class="nm"><div class="av ${avc(i)}">${ini(s.customer)}</div>${s.customer}</div></td>
+      <td style="color:var(--text2)">${s.desc}</td>
+      <td style="font-weight:600">${fmtY(s.fee)}</td>
+      <td style="color:var(--text2)">${fmtD(s.date)}</td>
+      <td><div style="display:flex;gap:4px"><button class="btn btn-edit" onclick="editKoSale(${s.id})"><i class="ti ti-pencil"></i>編集</button><button class="btn btn-danger" onclick="delKoSale(${s.id})"><i class="ti ti-trash"></i>削除</button></div></td>
+    </tr>`).join(''):`<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--text2)">${y}年の記録がありません</td></tr>`;
+}
+function addKoSale(){
+  const customer=document.getElementById('ks-cust').value.trim();
+  if(!customer){alert('顧客名を入力してください');return;}
+  koSale.push({id:ids.koSale++,customer,desc:document.getElementById('ks-desc').value.trim(),fee:parseInt(document.getElementById('ks-fee').value)||0,date:document.getElementById('ks-date').value||new Date().toISOString().slice(0,10)});
+  save(SK.koSale,koSale);clearF('ks-cust,ks-desc,ks-fee,ks-date');renderKoSale();renderKoDash();toast('売上を追加しました ✓');
+}
+function delKoSale(id){if(confirm('削除しますか？')){koSale=koSale.filter(s=>s.id!==id);save(SK.koSale,koSale);renderKoSale();renderKoDash();toast('削除しました');}}
+function editKoSale(id){
+  const s=koSale.find(x=>x.id===id);if(!s)return;
+  const fields=`<div class="fg">
+    <div class="fr"><span class="fl">顧客名</span><input id="e-cust" value="${s.customer}"></div>
+    <div class="fr"><span class="fl">内容</span><input id="e-desc" value="${s.desc}"></div>
+    <div class="fr"><span class="fl">金額（円）</span><input id="e-fee" type="number" value="${s.fee}"></div>
+    <div class="fr"><span class="fl">日付</span><input id="e-date" type="date" value="${s.date}"></div>
+  </div>`;
+  openEditModal('売上を編集',fields,{save:()=>{
+    s.customer=document.getElementById('e-cust').value.trim();
+    s.desc=document.getElementById('e-desc').value.trim();
+    s.fee=parseInt(document.getElementById('e-fee').value)||0;
+    s.date=document.getElementById('e-date').value;
+    save(SK.koSale,koSale);renderKoSale();renderKoDash();toast('更新しました ✓');
+  }});
+}
+
+// ===== 副業カレッジ =====
+function buildFuYears(){buildSel('fu-year',getYearsFrom(fuData,'ym'));}
+function renderFu(){
+  buildFuYears();
+  const y=document.getElementById('fu-year').value;
+  const filtered=fuData.filter(f=>f.ym.startsWith(y)).sort((a,b)=>b.ym.localeCompare(a.ym));
+  const totalInc=filtered.reduce((a,f)=>a+Number(f.inc),0);
+  const totalExp=filtered.reduce((a,f)=>a+Number(f.exp),0);
+  document.getElementById('fu-tbl').innerHTML=filtered.length?filtered.map((f,i)=>{
+    const profit=Number(f.inc)-Number(f.exp);
+    return`<tr>
+      <td style="font-weight:500">${f.ym.replace('-','年')}月</td>
+      <td style="color:var(--green);font-weight:600">${fmtY(f.inc)}</td>
+      <td style="color:var(--red)">${fmtY(f.exp)}</td>
+      <td style="font-weight:600;color:${profit>=0?'var(--green)':'var(--red)'}">${profit>=0?'+':''}${fmtY(profit)}</td>
+      <td style="color:var(--text2);font-size:12px">${f.memo}</td>
+      <td><div style="display:flex;gap:4px"><button class="btn btn-edit" onclick="editFu(${f.id})"><i class="ti ti-pencil"></i>編集</button><button class="btn btn-danger" onclick="delFu(${f.id})"><i class="ti ti-trash"></i>削除</button></div></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text2)">${y}年の記録がありません</td></tr>`;
+  const profit=totalInc-totalExp;
+  document.getElementById('fu-metrics').innerHTML=`
+    <div class="mc"><div class="mc-acc" style="background:var(--green)"></div><div class="mc-lbl"><i class="ti ti-trending-up" style="font-size:13px"></i>${y}年 収入合計</div><div class="mc-val" style="color:var(--green)">${fmtY(totalInc)}</div></div>
+    <div class="mc"><div class="mc-acc" style="background:var(--red)"></div><div class="mc-lbl"><i class="ti ti-trending-down" style="font-size:13px"></i>${y}年 支出合計</div><div class="mc-val" style="color:var(--red)">${fmtY(totalExp)}</div></div>
+    <div class="mc"><div class="mc-acc" style="background:${profit>=0?'var(--blue)':'var(--red)'}"></div><div class="mc-lbl"><i class="ti ti-calculator" style="font-size:13px"></i>${y}年 収支</div><div class="mc-val" style="color:${profit>=0?'var(--blue)':'var(--red)'}">${profit>=0?'+':''}${fmtY(profit)}</div></div>`;
+}
+function addFu(){
+  const ym=document.getElementById('fu-ym').value;
+  if(!ym){alert('年月を入力してください');return;}
+  const inc=parseInt(document.getElementById('fu-inc').value)||0;
+  const exp=parseInt(document.getElementById('fu-exp').value)||0;
+  const memo=document.getElementById('fu-memo').value.trim();
+  const existing=fuData.find(f=>f.ym===ym);
+  if(existing){if(!confirm(`${ym.replace('-','年')}月のデータが既にあります。上書きしますか？`))return;existing.inc=inc;existing.exp=exp;existing.memo=memo;}
+  else fuData.push({id:ids.fu++,ym,inc,exp,memo});
+  save(SK.fu,fuData);clearF('fu-ym,fu-inc,fu-exp,fu-memo');renderFu();toast('登録しました ✓');
+}
+function delFu(id){if(confirm('削除しますか？')){fuData=fuData.filter(f=>f.id!==id);save(SK.fu,fuData);renderFu();toast('削除しました');}}
+function editFu(id){
+  const f=fuData.find(x=>x.id===id);if(!f)return;
+  const fields=`<div class="fg">
+    <div class="fr"><span class="fl">年月</span><input id="e-ym" type="month" value="${f.ym}"></div>
+    <div class="fr"><span class="fl">収入（円）</span><input id="e-inc" type="number" value="${f.inc}"></div>
+    <div class="fr"><span class="fl">支出（円）</span><input id="e-exp" type="number" value="${f.exp}"></div>
+    <div class="fr full"><span class="fl">メモ</span><input id="e-memo" value="${f.memo}"></div>
+  </div>`;
+  openEditModal('収支を編集',fields,{save:()=>{
+    f.ym=document.getElementById('e-ym').value;
+    f.inc=parseInt(document.getElementById('e-inc').value)||0;
+    f.exp=parseInt(document.getElementById('e-exp').value)||0;
+    f.memo=document.getElementById('e-memo').value.trim();
+    save(SK.fu,fuData);renderFu();toast('更新しました ✓');
+  }});
+}
+
+// ===== 合計収支 =====
+function buildSumYears(){
+  const ys=new Set([
+    ...reSale.map(s=>s.date.slice(0,4)),
+    ...koSale.map(s=>s.date.slice(0,4)),
+    ...fuData.map(f=>f.ym.slice(0,4)),
+    String(new Date().getFullYear())
+  ]);
+  buildSel('sum-year',Array.from(ys).sort((a,b)=>b-a));
+}
+function renderSum(){
+  buildSumYears();
+  const y=document.getElementById('sum-year').value;
+  const reTotal=reSale.filter(s=>s.date.startsWith(y)).reduce((a,s)=>a+Number(s.fee),0);
+  const koTotal=koSale.filter(s=>s.date.startsWith(y)).reduce((a,s)=>a+Number(s.fee),0);
+  const fuInc=fuData.filter(f=>f.ym.startsWith(y)).reduce((a,f)=>a+Number(f.inc),0);
+  const fuExp=fuData.filter(f=>f.ym.startsWith(y)).reduce((a,f)=>a+Number(f.exp),0);
+  const grand=reTotal+koTotal+fuInc;
+  document.getElementById('sum-total').textContent=fmtY(grand);
+  document.getElementById('sum-sub').textContent=`不動産 ${fmtY(reTotal)} ＋ 送迎 ${fmtY(koTotal)} ＋ 副業カレッジ ${fmtY(fuInc)}（副業支出 ${fmtY(fuExp)}）`;
+  document.getElementById('sum-cards').innerHTML=`
+    <div class="sum-card" style="background:var(--blue-l);border-color:#B5D4F4">
+      <div class="sum-cat" style="color:var(--blue)"><i class="ti ti-building"></i>不動産</div>
+      <div class="sum-val" style="color:var(--blue)">${fmtY(reTotal)}</div>
+      <div class="sum-sub" style="color:var(--blue)">${reSale.filter(s=>s.date.startsWith(y)).length}件成約</div>
+    </div>
+    <div class="sum-card" style="background:var(--teal-l);border-color:#8FD4BE">
+      <div class="sum-cat" style="color:var(--teal)"><i class="ti ti-car"></i>送迎</div>
+      <div class="sum-val" style="color:var(--teal)">${fmtY(koTotal)}</div>
+      <div class="sum-sub" style="color:var(--teal)">${koSale.filter(s=>s.date.startsWith(y)).length}件</div>
+    </div>
+    <div class="sum-card" style="background:var(--purple-l);border-color:#B5B0F0">
+      <div class="sum-cat" style="color:var(--purple)"><i class="ti ti-school"></i>副業カレッジ</div>
+      <div class="sum-val" style="color:var(--purple)">${fmtY(fuInc)}</div>
+      <div class="sum-sub" style="color:var(--purple)">収支 ${fuInc-fuExp>=0?'+':''}${fmtY(fuInc-fuExp)}</div>
+    </div>`;
+  const months=Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'));
+  const mData=months.map(m=>{
+    const re=reSale.filter(s=>s.date.startsWith(`${y}-${m}`)).reduce((a,s)=>a+Number(s.fee),0);
+    const ko=koSale.filter(s=>s.date.startsWith(`${y}-${m}`)).reduce((a,s)=>a+Number(s.fee),0);
+    const fu=fuData.filter(f=>f.ym===`${y}-${m}`).reduce((a,f)=>a+Number(f.inc),0);
+    return re+ko+fu;
+  });
+  const mx=Math.max(...mData,1);
+  document.getElementById('sum-bar').innerHTML=months.map((m,i)=>`
+    <div class="bar-row"><span class="bl">${Number(m)}月</span><div class="bt"><div class="bf" style="width:${Math.round(mData[i]/mx*100)}%;background:var(--amber)"></div></div><span class="bv" style="width:90px">${mData[i]>0?fmtY(mData[i]):'—'}</span></div>`).join('');
+}
+
+// ===== INIT =====
+renderReDash();
+</script>
+</body>
+</html>
